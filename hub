@@ -40,12 +40,17 @@ pipeline {
                 script {
                     sh '''
                     CID=$(docker ps -q --filter "name=dockerfile")
-                    if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
+                    if [ -n "$CID" ]; then 
+                        docker stop $CID && docker rm $CID
+                    else 
+                        echo "No Container named dockerfile is running"
+                    fi
                     '''
-                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} "
+                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
                     sh 'docker ps -qa'
                     sh '''
-                   
+                    echo "Please navigate to http://"`curl -s ifconfig.me`
+                    '''
                 }
             }
         }
