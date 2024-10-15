@@ -2,8 +2,8 @@ pipeline {
     agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/docker.git'
-        DOCKER_IMAGE = 'myapp'  // Descriptive image name
-        DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'  // Jenkins credentials ID for Dockerhub
+        DOCKER_IMAGE = 'your-dockerhub-username/myapp-backend'  // Replace with your actual DockerHub username and image name
+        DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'  // Jenkins credentials ID for DockerHub
         DOCKER_EMAIL = 'sibisidhu'
     }
     stages {
@@ -38,19 +38,12 @@ pipeline {
             agent { label 'docker' }
             steps {
                 script {
-                    // Stop and remove the specific container for dockerfile
                     sh '''
                     CID=$(docker ps -q --filter "name=dockerfile")
                     if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
                     '''
-                    
-                    // Run the updated container
                     sh "docker run -itd -p 80:4000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
-                    
-                    // List all running containers
                     sh 'docker ps -qa'
-                    
-                    // Show the public IP to access the service
                     sh '''
                     set +x;
                     echo "Please navigate to http://"`curl -s ifconfig.me`; set -x
@@ -60,4 +53,3 @@ pipeline {
         }
     }
 }
- 
