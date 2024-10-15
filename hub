@@ -34,7 +34,7 @@ pipeline {
             }
         }
 
-        stage('Update staged-dockerfile') {
+        stage('Update -dockerfile') {
             agent { label 'docker' }
             steps {
                 script {
@@ -42,13 +42,10 @@ pipeline {
                     CID=$(docker ps -q --filter "name=dockerfile")
                     if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
                     '''
-                    // Adjusted to expose port 5000
-                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
+                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} "
                     sh 'docker ps -qa'
                     sh '''
-                    set +x;
-                    echo "Please navigate to http://"`curl -s ifconfig.me`; set -x
-                    '''
+                   
                 }
             }
         }
