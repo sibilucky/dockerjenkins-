@@ -1,3 +1,0 @@
-environment {
-    DOCKER_IMAGE = 'your-dockerhub-username/myapp-backend'
-}
