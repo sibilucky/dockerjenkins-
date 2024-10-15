@@ -1,18 +1,11 @@
-pipeline {
-    agent none
+ agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/docker.git'
         DOCKER_IMAGE = 'myapp'  // Descriptive image name
         DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'  // Jenkins credentials ID for Dockerhub
         DOCKER_EMAIL = 'sibisidhu'
     }
-    stages {
-        stage('Code Pull on Github') {
-            agent { label 'stage' }
-            steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], 
-                  userRemoteConfigs: [[credentialsId: 'github', url: "${GIT_REPO}"]]])
-            }
+	  pipeline {
         }
 
         stage('Container Image Builds') {
@@ -43,13 +36,13 @@ pipeline {
                     CID=$(docker ps -q --filter "name=dockerfile")
                     if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
                     '''
-                    
+
                     // Run the updated container
                     sh "docker run -itd -p 80:4000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
-                    
+
                     // List all running containers
                     sh 'docker ps -qa'
-                    
+
                     // Show the public IP to access the service
                     sh '''
                     set +x;
