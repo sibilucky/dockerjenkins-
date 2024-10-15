@@ -2,7 +2,7 @@ pipeline {
     agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/docker.git'
-        DOCKER_IMAGE = 'dockerfile'
+        DOCKER_IMAGE = 'myapp'  // Descriptive image name
         DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'  // Jenkins credentials ID for Dockerhub
         DOCKER_EMAIL = 'sibisidhu'
     }
@@ -16,39 +16,47 @@ pipeline {
         }
 
         stage('Container Image Builds') {
-            agent { label 'docker' }  // Assuming the 'docker' label corresponds to an agent with Docker installed
+            agent { label 'docker' }
             steps {
                 script {
-                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")  // Use env.BUILD_NUMBER instead of BUILD_TAG
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
 
         stage('Image Push to Dockerhub') {
-         steps {
-            script {
-                docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                    docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
-            }
-        }
-    }
-}
-
-       stage('Update staged-dockerfile') {
-            agent { label 'docker' }
             steps {
                 script {
-                    sh '''
-                    CID=$(docker ps -qa)
-                    if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container is running"; fi
-                    '''
-                    sh "docker run -itd -p 80:4000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
-                    sh 'docker ps -qa'
-                    sh '''
-                    set +x;
-                    echo "Please navigate to http://"`curl ifconfig.me`; set -x'''
+                    docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
+                        docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
+                    }
                 }
             }
         }
 
-       
+        stage('Update staged-dockerfile') {
+            agent { label 'docker' }
+            steps {
+                script {
+                    // Stop and remove the specific container for dockerfile
+                    sh '''
+                    CID=$(docker ps -q --filter "name=dockerfile")
+                    if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
+                    '''
+                    
+                    // Run the updated container
+                    sh "docker run -itd -p 80:4000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
+                    
+                    // List all running containers
+                    sh 'docker ps -qa'
+                    
+                    // Show the public IP to access the service
+                    sh '''
+                    set +x;
+                    echo "Please navigate to http://"`curl -s ifconfig.me`; set -x
+                    '''
+                }
+            }
+        }
+    }
+}
