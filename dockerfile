@@ -1,13 +1,8 @@
-FROM python:3.9-slim
-
+FROM node:14-slim
 WORKDIR /app
-
 COPY . /app
-
-RUN pip install --no-cache-dir -r requirements.txt
-
+RUN npm install --no-cache
 EXPOSE 5000
-
 ENV NAME World
+CMD ["node", "app.js"]
 
-CMD ["python", "app.py"]
