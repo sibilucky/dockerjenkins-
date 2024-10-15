@@ -2,7 +2,7 @@ pipeline {
     agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
-        DOCKER_IMAGE = 'your-dockerhub-username/myapp-backend'
+        DOCKER_IMAGE = 'sibisidhu/myapp-backend'
         DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'
         DOCKER_EMAIL = 'sibisidhu'
     }
