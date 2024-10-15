@@ -2,8 +2,8 @@ pipeline {
     agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/docker.git'
-        DOCKER_IMAGE = 'your-dockerhub-username/myapp-backend'  // Replace with your actual DockerHub username and image name
-        DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'  // Jenkins credentials ID for DockerHub
+        DOCKER_IMAGE = 'your-dockerhub-username/myapp-backend'
+        DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'
         DOCKER_EMAIL = 'sibisidhu'
     }
     stages {
@@ -42,7 +42,8 @@ pipeline {
                     CID=$(docker ps -q --filter "name=dockerfile")
                     if [ -n "$CID" ]; then docker stop $CID && docker rm $CID; else echo "No Container named dockerfile is running"; fi
                     '''
-                    sh "docker run -itd -p 80:4000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
+                    // Adjusted to expose port 5000
+                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER} serve --host=0.0.0.0"
                     sh 'docker ps -qa'
                     sh '''
                     set +x;
