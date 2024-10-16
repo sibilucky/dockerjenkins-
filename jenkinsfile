@@ -15,11 +15,14 @@ pipeline {
         }
 
         stage('Build Docker Image') {
-            agent { label 'docker' }  // Ensure the 'docker' label is assigned to a Jenkins agent with Docker installed
+            agent { label 'docker' }  // Ensure this agent has Docker installed
             steps {
                 script {
                     // Build the Docker image
                     sh 'docker build -t sibisam2301/myapp-backend .'
+                    
+                    // List the newly built image to confirm its presence
+                    sh 'docker images sibisam2301/myapp-backend'
                 }
             }
         }
@@ -37,7 +40,7 @@ pipeline {
         }
 
         stage('Update Application') {
-            agent { label 'stage' }  // Ensure the 'stage' label is assigned to an agent that can run Docker containers
+            agent { label 'stage' }  // Ensure this agent has Docker installed
             steps {
                 script {
                     // Stop and remove any running containers
@@ -61,4 +64,3 @@ pipeline {
         }
     }
 }
-
