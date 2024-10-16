@@ -1,10 +1,5 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any  // Use any available agent
     environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
         DOCKER_IMAGE = 'sibisam2301/myapp-backend'
@@ -21,6 +16,7 @@ pipeline {
         stage('Container Image Builds') {
             steps {
                 script {
+                    // Build the Docker image
                     sh 'docker build -t sibisam2301/myapp-backend .'
                 }
             }
@@ -33,6 +29,30 @@ pipeline {
                         sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
                     }
                     sh 'docker push sibisam2301/myapp-backend'
+                }
+            }
+        }
+
+        stage('Update sibisam2301') {
+            agent { label 'stage' }
+            steps {
+                script {
+                    // Stop and remove any running containers
+                    sh '''
+                    CID=$(sudo docker ps -q)
+                    if [ -n "$CID" ]; then 
+                        sudo docker stop $CID && sudo docker rm $CID
+                    else 
+                        echo "No Container is running"
+                    fi
+                    '''
+
+                    // Run the latest container on port 80, mapping port 4000 inside the container
+                    sh "sudo docker run -itd -p 80:4000 --name sibisam2301 ${DOCKER_IMAGE}:${env.BUILD_TAG} serve --host=0.0.0.0"
+
+                    // Output the running container's ID and provide the blog URL
+                    sh 'sudo docker ps -qa'
+                    sh '''set +x; echo "Please navigate to http://"`curl ifconfig.ca`; set -x'''
                 }
             }
         }
