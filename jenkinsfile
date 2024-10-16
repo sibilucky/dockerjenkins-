@@ -10,7 +10,7 @@ pipeline {
         stage('Checkout') {
             agent { label 'stage' }  // Define the agent for this stage
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sibilucky/dockerjenkins-.git']]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: https://github.com/sibilucky/dockerjenkins-.git]]])
             }
         }
 
@@ -19,50 +19,21 @@ pipeline {
             steps {
                 script {
                     // Build the Docker image
-                     sh 'docker build -t sibisam2301/myapp-backend.'
+                    sh 'docker build -t sibisam2301/myapp-backend .'
                 }
             }
         }
 
-      stage('Push image to Hub'){
-            steps{
-                script{
-                   withCredentials([string(credentialsId: 'dockerhub-pwd', variable: 'dockerhubpwd')]) {
-                   sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
-
-}
-                   sh 'docker push sibisam2301/myapp-backend'
-                }
-            }
-        }
-
-        stage('Update Docker Container') {
+        stage('Push image to Hub') {
             agent { label 'docker' }
             steps {
                 script {
-                    // Check if a container named dockerfile is running and remove it
-                    sh '''
-                    CID=$(docker ps -q --filter "name=dockerfile")
-                    if [ -n "$CID" ]; then 
-                        docker stop $CID && docker rm $CID
-                    else 
-                        echo "No Container named dockerfile is running"
-                    fi
-                    '''
-                    
-                    // Run the new container from the built image
-                    sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
-                    
-                    // List all containers
-                    sh 'docker ps -qa'
-                    
-                    // Get the public IP of the machine and display it
-                    sh '''
-                    echo "Please navigate to http://"`curl -s ifconfig.me`
-                    '''
+                    withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
+                        sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
+                    }
+                    sh 'docker push sibisam2301/myapp-backend'
                 }
             }
         }
     }
 }
-
