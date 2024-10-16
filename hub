@@ -2,9 +2,9 @@ pipeline {
     agent none
     environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
-        DOCKER_IMAGE = 'sibisidhu/myapp-backend'
+        DOCKER_IMAGE = 'sibisam2301/myapp-backend'
         DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'
-        DOCKER_EMAIL = 'sibisidhu'
+        DOCKER_EMAIL = 'sibisam2301'
     }
     stages {
         stage('Code Pull on Github') {
@@ -19,7 +19,8 @@ pipeline {
             agent { label 'docker' }
             steps {
                 script {
-                    docker.build("${myapp-backend}:${env.BUILD_NUMBER}")
+                    // Corrected the image name
+                    docker.build("${DOCKER_IMAGE}:${env.BUILD_NUMBER}")
                 }
             }
         }
@@ -27,17 +28,21 @@ pipeline {
         stage('Image Push to Dockerhub') {
             steps {
                 script {
+                    // Debugging step to check if the image is built and tagged correctly
+                    sh "docker images"
+                    
                     docker.withRegistry('https://index.docker.io/v1/', 'dockerhub') {
-                        docker.image("${myapp-backend}:${env.BUILD_NUMBER}").push()
+                        docker.image("${DOCKER_IMAGE}:${env.BUILD_NUMBER}").push()
                     }
                 }
             }
         }
 
-        stage('Update -dockerfile') {
+        stage('Update Docker Container') {
             agent { label 'docker' }
             steps {
                 script {
+                    // Check if a container named dockerfile is running and remove it
                     sh '''
                     CID=$(docker ps -q --filter "name=dockerfile")
                     if [ -n "$CID" ]; then 
@@ -46,8 +51,11 @@ pipeline {
                         echo "No Container named dockerfile is running"
                     fi
                     '''
+                    // Corrected the image name for running the container
                     sh "docker run -itd -p 80:5000 --name dockerfile ${DOCKER_IMAGE}:${env.BUILD_NUMBER}"
                     sh 'docker ps -qa'
+                    
+                    // Get the public IP of the machine and display it
                     sh '''
                     echo "Please navigate to http://"`curl -s ifconfig.me`
                     '''
@@ -56,3 +64,4 @@ pipeline {
         }
     }
 }
+
