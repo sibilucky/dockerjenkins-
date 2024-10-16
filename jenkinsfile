@@ -7,12 +7,11 @@ pipeline {
         DOCKER_EMAIL = 'sibisam2301'
     }
     stages {
-        stage('Code Pull on Github') {
-            agent { label 'stage' }
+        stage('Checkout') {
+            agent { label 'stage' }  // Define the agent for this stage
             steps {
-                // Checkout the code from GitHub
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], 
-                  userRemoteConfigs: [[credentialsId: 'github', url: "${GIT_REPO}"]]])
+                git credentialsId: 'github-credentials', url: "${git clone https://github.com/sibilucky/dockerjenkins.git
+}", branch: 'main'
             }
         }
 
@@ -27,6 +26,7 @@ pipeline {
         }
 
         stage('Image Push to Dockerhub') {
+            agent { label 'docker' } // Ensure this stage has the appropriate agent
             steps {
                 script {
                     // Check if the image was built and tagged correctly
@@ -69,3 +69,4 @@ pipeline {
         }
     }
 }
+
