@@ -11,6 +11,7 @@ pipeline {
             agent { label 'stage' }
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sibilucky/dockerjenkins-.git']]])
+
             }
         }
 
