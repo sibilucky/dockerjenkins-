@@ -8,9 +8,9 @@ pipeline {
     }
     stages {
         stage('Checkout') {
-            agent { label 'stage' }  // Define the agent for this stage
+            agent { label 'stage' }
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: https://github.com/sibilucky/dockerjenkins-.git]]])
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sibilucky/dockerjenkins-.git']]])
             }
         }
 
@@ -18,8 +18,8 @@ pipeline {
             agent { label 'docker' }
             steps {
                 script {
-                    // Build the Docker image
-                    sh 'docker build -t sibisam2301/myapp-backend .'
+                    // Build the Docker image with the build number as the tag
+                    sh 'docker build -t sibisam2301/myapp-backend:${env.BUILD_NUMBER} .'
                 }
             }
         }
@@ -28,10 +28,15 @@ pipeline {
             agent { label 'docker' }
             steps {
                 script {
+                    // Log in to Docker Hub and push the image
                     withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
-                        sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
+                        sh '''
+                        set +x
+                        docker login -u sibisam2301 -p ${dockerhubpwd}
+                        set -x
+                        '''
                     }
-                    sh 'docker push sibisam2301/myapp-backend'
+                    sh 'docker push sibisam2301/myapp-backend:${env.BUILD_NUMBER}'
                 }
             }
         }
