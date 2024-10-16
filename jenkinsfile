@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent any  // Use any available agent for the entire pipeline
     environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
         DOCKER_IMAGE = 'sibisam2301/myapp-backend'
@@ -8,36 +8,27 @@ pipeline {
     }
     stages {
         stage('Checkout') {
-            agent { label 'stage' }
             steps {
                 checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sibilucky/dockerjenkins-.git']]])
-
             }
         }
 
         stage('Container Image Builds') {
-            agent { label 'docker' }
             steps {
                 script {
-                    // Build the Docker image with the build number as the tag
-                    sh 'docker build -t sibisam2301/myapp-backend:${env.BUILD_NUMBER} .'
+                    // Build the Docker image
+                    sh 'docker build -t sibisam2301/myapp-backend .'
                 }
             }
         }
 
         stage('Push image to Hub') {
-            agent { label 'docker' }
             steps {
                 script {
-                    // Log in to Docker Hub and push the image
                     withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
-                        sh '''
-                        set +x
-                        docker login -u sibisam2301 -p ${dockerhubpwd}
-                        set -x
-                        '''
+                        sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
                     }
-                    sh 'docker push sibisam2301/myapp-backend:${env.BUILD_NUMBER}'
+                    sh 'docker push sibisam2301/myapp-backend'
                 }
             }
         }
