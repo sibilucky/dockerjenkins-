@@ -1,5 +1,10 @@
 pipeline {
-    agent any  // Use any available agent for the entire pipeline
+    agent {
+        docker {
+            image 'docker:latest'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
     environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
         DOCKER_IMAGE = 'sibisam2301/myapp-backend'
@@ -16,7 +21,6 @@ pipeline {
         stage('Container Image Builds') {
             steps {
                 script {
-                    // Build the Docker image
                     sh 'docker build -t sibisam2301/myapp-backend .'
                 }
             }
