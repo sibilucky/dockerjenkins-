@@ -18,22 +18,22 @@ pipeline {
             agent { label 'docker' }  // Ensure this agent has Docker installed
             steps {
                 script {
-                    // Build the Docker image
-                    sh 'docker build -t sibisam2301/myapp-backend .'
+                    // Use BUILD_TAG to create a unique tag for each image
+                    sh 'docker build -t sibisam2301/myapp-backend:${env.BUILD_TAG} .'
                     
                     // List the newly built image to confirm its presence
                     sh 'docker images sibisam2301/myapp-backend'
                 }
             }
         }
-
+        
         stage('Push Image to Docker Hub') {
             steps {
                 script {
                     withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
-                        // Login to Docker Hub and push the built image
+                        // Login to Docker Hub and push the built image with the build tag
                         sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
-                        sh 'docker push sibisam2301/myapp-backend'
+                        sh 'docker push sibisam2301/myapp-backend:${env.BUILD_TAG}'
                     }
                 }
             }
@@ -54,7 +54,7 @@ pipeline {
                     '''
 
                     // Run the latest container on port 80, mapping port 4000 inside the container
-                    sh "sudo docker run -itd -p 80:4000 --name sibisam2301 ${DOCKER_IMAGE}:latest serve --host=0.0.0.0"
+                    sh "sudo docker run -itd -p 80:4000 --name sibisam2301 ${DOCKER_IMAGE}:${env.BUILD_TAG} serve --host=0.0.0.0"
 
                     // Output the running container's ID and provide the blog URL
                     sh 'sudo docker ps -qa'
@@ -64,3 +64,4 @@ pipeline {
         }
     }
 }
+
