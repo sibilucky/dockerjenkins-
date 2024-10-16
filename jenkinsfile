@@ -9,11 +9,13 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/sibilucky/dockerjenkins-.git']]])
+                // Check out the repository
+                checkout([$class: 'GitSCM', branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: GIT_REPO]]])
             }
         }
 
-        stage('Container Image Builds') {
+        stage('Build Docker Image') {
+            agent { label 'docker' }  // Ensure the 'docker' label is assigned to a Jenkins agent with Docker installed
             steps {
                 script {
                     // Build the Docker image
@@ -22,19 +24,20 @@ pipeline {
             }
         }
 
-        stage('Push image to Hub') {
+        stage('Push Image to Docker Hub') {
             steps {
                 script {
                     withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
+                        // Login to Docker Hub and push the built image
                         sh 'docker login -u sibisam2301 -p ${dockerhubpwd}'
+                        sh 'docker push sibisam2301/myapp-backend'
                     }
-                    sh 'docker push sibisam2301/myapp-backend'
                 }
             }
         }
 
-        stage('Update sibisam2301') {
-            agent { label 'stage' }
+        stage('Update Application') {
+            agent { label 'stage' }  // Ensure the 'stage' label is assigned to an agent that can run Docker containers
             steps {
                 script {
                     // Stop and remove any running containers
@@ -48,7 +51,7 @@ pipeline {
                     '''
 
                     // Run the latest container on port 80, mapping port 4000 inside the container
-                    sh "sudo docker run -itd -p 80:4000 --name sibisam2301 ${DOCKER_IMAGE}:${env.BUILD_TAG} serve --host=0.0.0.0"
+                    sh "sudo docker run -itd -p 80:4000 --name sibisam2301 ${DOCKER_IMAGE}:latest serve --host=0.0.0.0"
 
                     // Output the running container's ID and provide the blog URL
                     sh 'sudo docker ps -qa'
@@ -58,3 +61,4 @@ pipeline {
         }
     }
 }
+
