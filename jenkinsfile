@@ -26,14 +26,15 @@ pipeline {
             steps {
                 script {
                     // Use withCredentials to handle DockerHub credentials securely
-                    withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                        echo "Logging into DockerHub..."
-                        docker login -u sibisam2301 -p ${dockerhub}
-                        '''
-                    }
-                    // Push the image to Docker Hub
-                    sh 'docker push sibisam2301/myapp-backend:${env.BUILD_NUMBER}'
+                   withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_PASSWORD')]) {
+                   // Use the DOCKER_PASSWORD variable here
+                     sh 'docker build -t sibisam2301/myapp-backend .'
+                   // Example of logging in to Docker Hub
+                  sh "echo \$DOCKER_PASSWORD | docker login  sibisam2301 --password-stdin"
+                     // Push the image to Docker Hub
+                 sh 'docker push sibisam2301/myapp-backend'
+                }
+
                 }
             }
         }
