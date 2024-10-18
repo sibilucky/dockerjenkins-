@@ -1,10 +1,9 @@
 pipeline {
     agent any
-    
-    environment {
+ environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
-        DOCKER_IMAGE = 'sibisam2301/myapp-backend'
-        DOCKER_REGISTRY_CREDENTIALS = 'dockerhub'
+        DOCKER_IMAGE = 'sibisam2301/my-alpine-image'
+        DOCKER_REGISTRY_CREDENTIALS = credentials('dockerhub')
         DOCKER_EMAIL = 'sibisam2301@gmail.com'
     }
 
@@ -17,22 +16,22 @@ pipeline {
 
         stage('Container Image Builds') {
             steps {
-                    echo 'sh \'docker build -t sibisam2301/myapp-backend'
-                    }
-            
-        }
+                    echo "sh -c 'docker run -it my-alpine-image'"
+               }
+            }
 
         stage('Push image to Docker Hub') {
             steps {
                 script {
                     // Use withCredentials to handle DockerHub credentials securely
-                   withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_PASSWORD')]) {
-                   // Use the DOCKER_PASSWORD variable here
-                     sh 'docker build -t sibisam2301/myapp-backend .'
-                   // Example of logging in to Docker Hub
-                  sh "echo \$DOCKER_PASSWORD | docker login  sibisam2301 --password-stdin"
-                     // Push the image to Docker Hub
-                 sh 'docker push sibisam2301/myapp-backend'
+                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USER')]) {
+                    sh '''
+                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USER --password-stdin
+                     '''
+                     // Use the DOCKER_PASSWORD variable here
+                     sh 'docker build -t my-alpine-image'.
+                    // Push the image to Docker Hub
+                 sh 'docker push sibisam2301/my-alpine-image '
                 }
 
                 }
@@ -40,11 +39,11 @@ pipeline {
         }
     }
 
+
     post {
         always {
-            echo "Pipeline completed. Cleaning up resources..."
-            // Optionally clean up Docker images (uncomment the following line if needed)
-            // sh 'docker rmi sibisam2301/myapp-backend:${env.BUILD_NUMBER}'
-        }
-    }
+            sh 'docker logout'
+      }
+   }
 }
+  
