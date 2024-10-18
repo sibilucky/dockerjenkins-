@@ -26,10 +26,10 @@ pipeline {
             steps {
                 script {
                     // Use withCredentials to handle DockerHub credentials securely
-                    withCredentials([string(credentialsId: DOCKER_REGISTRY_CREDENTIALS, variable: 'dockerhubpwd')]) {
+                    withCredentials([string(credentialsId: 'dockerhub', variable: 'DOCKER_PASSWORD')]) {
                         sh '''
                         echo "Logging into DockerHub..."
-                        docker login -u sibisam2301 -p ${dockerhubpwd}
+                        docker login -u sibisam2301 -p ${dockerhub}
                         '''
                     }
                     // Push the image to Docker Hub
