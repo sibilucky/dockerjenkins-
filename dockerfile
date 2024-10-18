@@ -1,24 +1,8 @@
-# Use the official Node.js 14 slim image as a base
-FROM node:14-slim
+# Use the official Alpine image as the base
+FROM alpine:latest
 
-# Set the working directory
-WORKDIR /app
+# Install any packages you need
+RUN apk add --no-cache curl
 
-# Copy only package.json and package-lock.json first for better caching
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install --no-cache
-
-# Copy the rest of the application code
-COPY . .
-
-# Expose the application port
-EXPOSE 5000
-
-# Set environment variables (if needed)
-ENV NAME World
-
-# Command to run the application
-CMD ["node", "app.js"]
-
+# Set the command to run when the container starts
+CMD ["sh"]
