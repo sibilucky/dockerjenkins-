@@ -1,8 +1,8 @@
-# Use the official Alpine image as the base
-FROM alpine:latest
+# Use Alpine 3.1.0 as the base image
+FROM alpine:3.1.0
 
-# Install any packages you need
+# Install any necessary packages (example: curl)
 RUN apk add --no-cache curl
 
-# Set the command to run when the container starts
-CMD ["sh"]
+# Set a default command (example: an echo command)
+CMD ["echo", "Hello from Alpine 3.1.0!"]
