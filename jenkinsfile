@@ -1,26 +1,26 @@
 pipeline {
-    agent any
- environment {
+agent any
+environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
         DOCKER_IMAGE = 'sibisam2301/my-alpine-image'
         DOCKER_REGISTRY_CREDENTIALS = credentials('dockerhub')
         DOCKER_EMAIL = 'sibisam2301@gmail.com'
     }
 
-    stages {
+ stages {
         stage('Checkout') {
             steps {
                 checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'demo', url: 'https://github.com/sibilucky/dockerjenkins-.git']])
                 }
         }
 
-        stage('Container Image Builds') {
+ stage('Container Image Builds') {
             steps {
                     echo "sh -c 'docker run -it my-alpine-image'"
                }
             }
 
-        stage('Push image to Docker Hub') {
+ stage('Push image to Docker Hub') {
             steps {
                 script {
                     // Use withCredentials to handle DockerHub credentials securely
