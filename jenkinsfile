@@ -23,14 +23,13 @@ environment {
      stage('Push image to Docker Hub') {
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USER')]) {
+                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh '''
-                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USER --password-stdin
-                        echo "Docker login successful"
+                            echo $DOCKER_PASSWORD | docker login -u sibisam2301 --password-stdin
+                            docker pull sibisam2301/my-alpine-image
                         '''
-                        sh 'my-alpine-image' // List images for debugging
                         echo "Pushing image to Docker Hub..."
-                        sh 'docker push sibisam2301/my-alpine-image'
+                        sh docker push sibisam2301/my-alpine-image
                     }
                 }
             }
