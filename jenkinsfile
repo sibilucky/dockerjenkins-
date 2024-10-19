@@ -4,7 +4,7 @@ environment {
         GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
         DOCKER_IMAGE = 'sibisam2301/my-alpine-image'
         DOCKER_REGISTRY_CREDENTIALS = credentials('dockerhub')
-        DOCKER_EMAIL = 'sibisam2301@gmail.com'
+        DOCKER_USERNAME = 'sibisam2301'
     }
 
  stages {
@@ -20,20 +20,18 @@ environment {
                }
             }
 
- stage('Push image to Docker Hub') {
+     stage('Push image to Docker Hub') {
             steps {
                 script {
-                    // Use withCredentials to handle DockerHub credentials securely
-                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USER')]) {
-                    sh '''
-                    echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USER --password-stdin
-                     '''
-                     // Use the DOCKER_PASSWORD variable here
-                     sh 'docker build -t my-alpine-image'.
-                    // Push the image to Docker Hub
-                     sh 'docker push sibisam2301/my-alpine-image '
-                }
-
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', passwordVariable: 'DOCKERHUB_CREDENTIALS_PSW', usernameVariable: 'DOCKERHUB_CREDENTIALS_USER')]) {
+                        sh '''
+                        echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USER --password-stdin
+                        echo "Docker login successful"
+                        '''
+                        sh 'my-alpine-image' // List images for debugging
+                        echo "Pushing image to Docker Hub..."
+                        sh 'docker push sibisam2301/my-alpine-image'
+                    }
                 }
             }
         }
