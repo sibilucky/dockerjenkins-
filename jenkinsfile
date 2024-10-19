@@ -16,17 +16,17 @@ environment {
 
  stage('Container Image Builds') {
             steps {
-                    echo "sh -c 'docker run -it my-alpine-image'"
+                    echo "sh -c  docker run -it my-alpine-image "
                }
             }
 
      stage('Push image to Docker Hub') {
             steps {
                 script {
-                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'DOCKER_USERNAME', passwordVariable: 'DOCKER_PASSWORD')]) {
+                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'sibisam2301', passwordVariable: 'DOCKER_PASSWORD')]) {
                         sh '''
                             echo $DOCKER_PASSWORD | docker login -u sibisam2301 --password-stdin
-                            docker pull sibisam2301/my-alpine-image
+                             echo "Docker login successful"
                         '''
                         echo "Pushing image to Docker Hub..."
                         sh docker push sibisam2301/my-alpine-image
