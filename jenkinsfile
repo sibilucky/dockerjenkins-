@@ -1,46 +1,76 @@
 pipeline {
-agent any
-environment {
-        GIT_REPO = 'https://github.com/sibilucky/dockerjenkins-.git'
-        DOCKER_IMAGE = 'sibisam2301/my-alpine-image'
-        DOCKER_REGISTRY_CREDENTIALS = credentials('dockerhub')
-        DOCKER_USERNAME = 'sibisam2301'
+    agent any
+    
+    environment {
+        DOCKER_IMAGE = "my-app"
+        REGISTRY = "docker.io"  // If you're using Docker Hub
+        REGISTRY_CREDENTIALS = "docker-credentials-id"  // Jenkins credentials for Docker login
+        DEPLOY_SERVER = "user@your-server.com"  // Replace with your server's SSH login
+        DEPLOY_PATH = "/path/to/deployment/directory"
     }
 
- stages {
-        stage('Checkout') {
+    stages {
+        stage('Checkout Code') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[credentialsId: 'demo', url: 'https://github.com/sibilucky/dockerjenkins-.git']])
-                }
+                // Checkout the code from your Git repository
+                git 'https://github.com/your-repo/your-app.git'
+            }
         }
 
- stage('Container Image Builds') {
-            steps {
-                    echo "sh -c  docker run -it my-alpine-image "
-               }
-            }
-
-     stage('Push image to Docker Hub') {
+        stage('Build Docker Image') {
             steps {
                 script {
-                     withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'sibisam2301', passwordVariable: 'DOCKER_PASSWORD')]) {
-                        sh '''
-                            echo $DOCKER_PASSWORD | docker login -u sibisam2301 --password-stdin
-                             echo "Docker login successful"
-                        '''
-                        echo "Pushing image to Docker Hub..."
-                        sh docker push sibisam2301/my-alpine-image
+                    // Build the Docker image from the Dockerfile in your repo
+                    sh 'docker build -t ${DOCKER_IMAGE} .'
+                }
+            }
+        }
+
+        stage('Run Docker Container for Testing') {
+            steps {
+                script {
+                    // Run the container (e.g., for tests, linting, etc.)
+                    sh 'docker run --rm ${DOCKER_IMAGE}'
+                }
+            }
+        }
+
+        stage('Push Docker Image to Registry') {
+            steps {
+                script {
+                    // Log in to Docker registry
+                    withCredentials([usernamePassword(credentialsId: "${REGISTRY_CREDENTIALS}", usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                        sh 'docker login -u $DOCKER_USER -p $DOCKER_PASS ${REGISTRY}'
                     }
+
+                    // Tag and push the Docker image
+                    sh 'docker tag ${DOCKER_IMAGE} ${REGISTRY}/${DOCKER_IMAGE}:latest'
+                    sh 'docker push ${REGISTRY}/${DOCKER_IMAGE}:latest'
+                }
+            }
+        }
+
+        stage('Deploy to Server') {
+            steps {
+                script {
+                    // SSH into the deployment server and restart the Docker container
+                    sh """
+                        ssh -o StrictHostKeyChecking=no ${DEPLOY_SERVER} "
+                            docker pull ${REGISTRY}/${DOCKER_IMAGE}:latest &&
+                            docker stop my-app-container || true &&
+                            docker rm my-app-container || true &&
+                            docker run -d --name my-app-container -p 80:80 ${REGISTRY}/${DOCKER_IMAGE}:latest
+                        "
+                    """
                 }
             }
         }
     }
-
-
+    
     post {
         always {
-              echo "Pipeline completed. Cleaning up resources..."
-      }
-   }
+            // Cleanup Docker images after pipeline finishes
+            sh 'docker system prune -f'
+        }
+    }
 }
-  
