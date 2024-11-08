@@ -1,16 +1,17 @@
-# Use the official Alpine image as the base
+# Start with the official Alpine base image
 FROM alpine:latest
 
-# Update the package repository and install basic packages
-RUN apk add --no-cache bash curl
+# Install Nginx
+RUN apk update && apk add nginx
 
-# Add your custom scripts, files, or setup here
-# For example, to create a directory and add a script:
-RUN mkdir /myapp
-WORKDIR /myapp
-COPY myscript.sh /myapp/myscript.sh
-RUN chmod +x myscript.sh
+# Create a directory for the server's content
+RUN mkdir -p /var/www/html
 
-# Define the default command to run when the container starts
-CMD ["./myscript.sh"]
+# Copy your custom HTML or web content into the server
+COPY ./index.html /var/www/html/
 
+# Expose the default HTTP port
+EXPOSE 80
+
+# Run Nginx when the container starts
+CMD ["nginx", "-g", "daemon off;"]
